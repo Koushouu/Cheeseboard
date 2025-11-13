@@ -84,6 +84,8 @@ def preprocess_position(position):
         - `x`: Smoothed x-coordinate of the animal position.
         - `y`: Smoothed y-coordinate of the animal position.
     '''
+    if position is None:
+        return position
     # Only extract ['frames','timestamp','smooth_trans_x','smooth_trans_y'] in position dataframe and make a new dataframe 
     position_truncate = position[['frame','timestamp','smooth_trans_x','smooth_trans_y']].copy()
     # Get rid of the rows where `smooth_trans_x` column is -1
