@@ -1,6 +1,10 @@
 # Cheeseboard
 All scripts for the cheeseboard project
 
+camera is recording ±30 frames per second
+DLC detection every ±15 frames，every 0.5 sec
+for the duration of animal in the zone, the animal receives ~10 mW, 20Hz, 5ms laser stimulation every 1 second
+
 ## Data organization details
 
 The data organization largely follows the [NeuroBlueprint](https://neuroblueprint.neuroinformatics.dev/) format, with a structure like following:  
@@ -83,6 +87,24 @@ There are two metadata for this project: `animal_info_YYYYMMDD.csv` and `trial_i
     * `test_type`: When there are several test trials, it differentiates between whether the test trials are extinction / forgetting
     * `usable`: 0/1, it tells whether the trial could be used in the analysis, as there are animals that didn’t learn the task. 1= usable, 0 = unusable.
 
+* `tracking.csv`: tracking information of each single trial
+    * `Unnamed: 0`: frame
+    * `inter_x` & `inter_y`: inter_x and inter_y = interpolated x and y in pixels. gaps between the frame rate where the mouse is not located = – 1
+    * `frame`
+    * `timestamp`: in milliseconds
+    * `inside_roi`: true = inside reward zone; false = not in reward zone
+    * `is_headdip`    
+    * `x` and `y` : real locations in pixels
+    * `trans_x` and `trans_y`: transpolate, 0-100, in a reference frame of the cheeseboard. As each time the cheeseboard might move a little bit, 0 would mean leftmost, 100 means rightmost. Square corners are impossible to reach. 50:50 is in the middle of the cheeseboard     
+    * `smooth_x` and `smooth_y`: gaussian smoothing averaging     
+    * `smooth_trans_x`    
+    * `smooth_trans_y`    
+    * `heading_angle`: DLC tracks the tip of nose and the middle of head and the joint between tail and body etc to calculate that     
+    * `smooth_heading_angle`    
+
+
+
+
 ## Other data
 * `cheeseboard_map.csv`: Cheeseboard map data
     We don't have a precise blueprint of the cheeseboard; however previous papers have described the structure of the cheeseboard maze [^1] and [^2]:
@@ -91,6 +113,12 @@ There are two metadata for this project: `animal_info_YYYYMMDD.csv` and `trial_i
     * Wells are 2.5 cm in diameter, 1.5 cm in depth
     * Distance between centers of wells: 8cm
     Note: I found that there is a subtle difference between Deprut's and Prez's cheeseboard
+
+    * ' ': each row describes a location on the cheeseboard
+    *`Area` `Mean` `Min` `Max`
+    *`X` and `Y`: position in pixel? 
+    * `trans_X` and `trans_Y`: transpolate, 0-100, in a reference frame of the cheeseboard
+    * `well_row` and `well_col`: tell the specific location, for example, A1
 
 [^1]: https://www.cell.com/current-biology/fulltext/S0960-9822(21)01700-0 check the method section -> cheeseboard maze task
 [^2]: https://www.nature.com/articles/nn.2599#MOESM14: Check supplementary text
