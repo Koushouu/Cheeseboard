@@ -5,16 +5,21 @@ from PIL import Image
 import numpy as np
 import pickle
 
-def load_metadata(type = 'combined'):
+def load_metadata(type = 'combined', animal_info_path = None, trial_info_path = None):
     '''
     Read the metadata file 
     type can be 'combined', 'animals' or 'trials'
     '''
-    animal_info = pd.read_csv(config.animal_info_path)
-    trial_info = pd.read_csv(config.trial_info_path)
+    if animal_info_path is None:
+        animal_info_path = config.animal_info_path
+    if trial_info_path is None:
+        trial_info_path = config.trial_info_path
+        
+    animal_info = pd.read_csv(animal_info_path)
+    trial_info = pd.read_csv(trial_info_path)
     if type == 'combined':
-        animal_info = pd.read_csv(config.animal_info_path)
-        trial_info = pd.read_csv(config.trial_info_path)
+        animal_info = pd.read_csv(animal_info_path)
+        trial_info = pd.read_csv(trial_info_path)
         return trial_info.merge(animal_info, on=['sub', 'id'], how='left')
     elif type == 'animals':
         return animal_info
