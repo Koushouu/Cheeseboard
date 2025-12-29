@@ -42,8 +42,14 @@ def load_data(fullpath):
     if not check_file_existence(fullpath):
         return None
     
+    # if fullpath.endswith('.csv'):
+    #     return pd.read_csv(fullpath)
+    
     if fullpath.endswith('.csv'):
-        return pd.read_csv(fullpath)
+        try:
+            return pd.read_csv(fullpath)  # try UTF-8 first
+        except UnicodeDecodeError:
+            return pd.read_csv(fullpath, encoding='latin1')
     
     elif fullpath.endswith('.pkl'):
         with open(fullpath, "rb") as f:

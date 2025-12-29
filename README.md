@@ -108,9 +108,10 @@ There are two metadata for this project: `animal_info_YYYYMMDD.csv` and `trial_i
 ## Other data
 * `cheeseboard_map.csv`: Cheeseboard map data
     We don't have a precise blueprint of the cheeseboard; however previous papers have described the structure of the cheeseboard maze [^1] and [^2]:
-    * The maze's diameter = 120 cm
+    * The maze's diameter = 120 cm, later transformed to 100 au
     * There are 177 evenly spaced wells
     * Wells are 2.5 cm in diameter, 1.5 cm in depth
+    * reward zone radius = 10 cm, which is ±8.3333333 au
     * Distance between centers of wells: 8cm
     Note: I found that there is a subtle difference between Deprut's and Prez's cheeseboard
 
