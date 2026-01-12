@@ -97,7 +97,10 @@ def preprocess_position(position):
     # Get rid of the rows where `smooth_trans_x` column is -1
     position_truncate = position_truncate[position_truncate['smooth_trans_x'] != -1].reset_index(drop=True)
     # Reset the time stamp such that time start from 0
-    position_truncate['timestamp'] = position_truncate['timestamp'].values - position_truncate['timestamp'][0]
+    if len(position_truncate) == 0:
+        return None  # or return position_truncate (empty), depending on what you want upstream
+    position_truncate['timestamp'] = position_truncate['timestamp'].values - position_truncate['timestamp'].iloc[0]
+    # position_truncate['timestamp'] = position_truncate['timestamp'].values - position_truncate['timestamp'][0]
     # Change the column names [timestamp','smooth_trans_x','smooth_trans_y'] to ['t','x','y]
     position_truncate.columns = ['frame','t','x','y']
     return position_truncate
