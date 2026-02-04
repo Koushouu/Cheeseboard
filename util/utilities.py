@@ -69,11 +69,14 @@ def preprocess_position(position):
         Preprocess the position DataFrame to extract only valid positional data
     and standardize column names for analysis.
 
-    This function performs the following steps:
-    1. Selects relevant columns: `frame`, `timestamp`, `smooth_trans_x`, `smooth_trans_y`.
-    2. Removes rows where `smooth_trans_x == -1` (indicating the animal was not detected).
-    3. Resets the timestamp so that time starts from zero, relative to the first valid frame.
-    4. Renames columns to standardized names: `frame`, `t`, `x`, and `y`.
+     This function performs the following steps:
+     1. Selects relevant columns: `frame`, `timestamp`, `smooth_trans_x`, `smooth_trans_y`.
+     2. In the first 20 seconds (timestamps are milliseconds), finds the first time
+         `smooth_trans_x != -1` that is part of a continuous >=3 s detected run and
+         removes all rows before that start time.
+     3. Resets the timestamp so that time starts from zero, relative to the first
+         valid frame, and adds a column that preserves the original timestamp.
+     4. Renames columns to standardized names: `frame`, `t`, `x`, and `y`.
 
     Parameters
     ----------
@@ -89,20 +92,70 @@ def preprocess_position(position):
         - `t`: Time in seconds, starting from 0 at the first valid frame.
         - `x`: Smoothed x-coordinate of the animal position.
         - `y`: Smoothed y-coordinate of the animal position.
+        - `timestamp_original`: Original timestamp in milliseconds.
     '''
     if position is None:
         return position
     # Only extract ['frames','timestamp','smooth_trans_x','smooth_trans_y'] in position dataframe and make a new dataframe 
     position_truncate = position[['frame','timestamp','smooth_trans_x','smooth_trans_y']].copy()
-    # Get rid of the rows where `smooth_trans_x` column is -1
-    position_truncate = position_truncate[position_truncate['smooth_trans_x'] != -1].reset_index(drop=True)
-    # Reset the time stamp such that time start from 0
+
     if len(position_truncate) == 0:
         return None  # or return position_truncate (empty), depending on what you want upstream
+
+    # timestamps are in milliseconds
+    ts = position_truncate['timestamp'].astype(float).values
+    t_rel = ts - ts[0]
+
+    detected_mask = (position_truncate['smooth_trans_x'].values != -1)
+
+    # Find trial start within first 20 s: first >=3 s continuous detected run
+    first_window_ms = 20000.0
+    min_detected_ms = 3000.0
+
+    idx_limit = np.searchsorted(t_rel, first_window_ms, side='right')
+    if idx_limit < 2:
+        return None
+
+    dt = float(np.nanmedian(np.diff(t_rel[:idx_limit])))
+    if not np.isfinite(dt) or dt <= 0:
+        return None
+
+    min_len = int(np.ceil(min_detected_ms / dt))
+    m = detected_mask[:idx_limit]
+
+    edges = np.diff(m.astype(np.int8), prepend=0, append=0)
+    starts = np.where(edges == 1)[0]
+    ends   = np.where(edges == -1)[0]
+
+    start_idx = None
+    for s, e in zip(starts, ends):
+        if (e - s) >= min_len:
+            start_idx = int(s)
+            break
+
+    if start_idx is None:
+        return None
+
+    # Remove everything before trial start
+    position_truncate = position_truncate.iloc[start_idx:].reset_index(drop=True)
+
+    # Remove rows where `smooth_trans_x` column is -1
+    position_truncate = position_truncate[position_truncate['smooth_trans_x'] != -1].reset_index(drop=True)
+    if len(position_truncate) == 0:
+        return None
+
+    # Preserve original timestamp
+    position_truncate['timestamp_original'] = position_truncate['timestamp'].values
+
+    # Reset the time stamp such that time start from 0
     position_truncate['timestamp'] = position_truncate['timestamp'].values - position_truncate['timestamp'].iloc[0]
     # position_truncate['timestamp'] = position_truncate['timestamp'].values - position_truncate['timestamp'][0]
     # Change the column names [timestamp','smooth_trans_x','smooth_trans_y'] to ['t','x','y]
-    position_truncate.columns = ['frame','t','x','y']
+    position_truncate = position_truncate.rename(columns={
+        'timestamp': 't',
+        'smooth_trans_x': 'x',
+        'smooth_trans_y': 'y'
+    })
     return position_truncate
 
 def preprocess_triggerLoc(triggerLoc):
