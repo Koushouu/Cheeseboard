@@ -75,17 +75,22 @@ There are two metadata for this project: `animal_info_YYYYMMDD.csv` and `trial_i
     * `id`: animal ID
     * `date`: the date when the trials are recorded, in `YYYYMMDD`
     * `ses`: session id, the day number of the experiment. This variable will always be continuous, i.e. will not leave gap when a day is missing in purpose
-    * `trial_id` = based on the number of trials recorded on that day
+    * `trial_id`: based on the number of trials recorded on that day. For baseline ephys recording, this is 0
     * `trial_type`:
         * `H` = habituation
-        * `L` = learning
+        * `L` = learning / short duration learning
         * `T` = test
         * `EL` = extra learning
         * `RL` = remapping learning
-        * `SL` = short duration learning
+        * `B` = Baseline / interval break for animals with ephys recording, no behaviour recorded
+
     * `trial_type_day`: number of days in a specific trial type
     * `test_type`: When there are several test trials, it differentiates between whether the test trials are extinction / forgetting
     * `usable`: 0/1, it tells whether the trial could be used in the analysis, as there are animals that didn’t learn the task. 1= usable, 0 = unusable.
+    
+    * `ephys_trial_id`: match the ephys recording folder with the behaviour trial
+    * `ephys_usable`: 0/1, it tells whether the ephys could be used in the analysis, as there are certain trials where ephys recording is missing or very bad quality
+
 
 * `tracking.csv`: tracking information of each single trial
     * `Unnamed: 0`: frame
