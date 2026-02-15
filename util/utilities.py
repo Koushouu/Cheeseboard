@@ -70,7 +70,7 @@ def preprocess_position(position):
     and standardize column names for analysis.
 
      This function performs the following steps:
-     1. Selects relevant columns: `frame`, `timestamp`, `smooth_trans_x`, `smooth_trans_y`.
+    1. Selects relevant columns: `frame`, `timestamp`, `smooth_trans_x`, `smooth_trans_y`, `inside_roi`.
      2. In the first 20 seconds (timestamps are milliseconds), finds the first time
          `smooth_trans_x != -1` that is part of a continuous >=3 s detected run and
          removes all rows before that start time.
@@ -82,7 +82,7 @@ def preprocess_position(position):
     ----------
     position : pandas.DataFrame
         Original position data containing at least the columns:
-        `frame`, `timestamp`, `smooth_trans_x`, and `smooth_trans_y`.
+        `frame`, `timestamp`, `smooth_trans_x`, `smooth_trans_y`, and `inside_roi`.
 
     Returns
     -------
@@ -92,12 +92,13 @@ def preprocess_position(position):
         - `t`: Time in seconds, starting from 0 at the first valid frame.
         - `x`: Smoothed x-coordinate of the animal position.
         - `y`: Smoothed y-coordinate of the animal position.
+        - `inside_roi`: Inside-ROI flag from the original data.
         - `timestamp_original`: Original timestamp in milliseconds.
     '''
     if position is None:
         return position
-    # Only extract ['frames','timestamp','smooth_trans_x','smooth_trans_y'] in position dataframe and make a new dataframe 
-    position_truncate = position[['frame','timestamp','smooth_trans_x','smooth_trans_y']].copy()
+    # Only extract ['frames','timestamp','smooth_trans_x','smooth_trans_y','inside_roi'] in position dataframe and make a new dataframe 
+    position_truncate = position[['frame','timestamp','smooth_trans_x','smooth_trans_y','inside_roi']].copy()
 
     if len(position_truncate) == 0:
         return None  # or return position_truncate (empty), depending on what you want upstream
@@ -116,11 +117,6 @@ def preprocess_position(position):
     if idx_limit < 2:
         return None
 
-    dt = float(np.nanmedian(np.diff(t_rel[:idx_limit])))
-    if not np.isfinite(dt) or dt <= 0:
-        return None
-
-    min_len = int(np.ceil(min_detected_ms / dt))
     m = detected_mask[:idx_limit]
 
     edges = np.diff(m.astype(np.int8), prepend=0, append=0)
@@ -129,7 +125,10 @@ def preprocess_position(position):
 
     start_idx = None
     for s, e in zip(starts, ends):
-        if (e - s) >= min_len:
+        if e <= s:
+            continue
+        run_ms = float(t_rel[min(e - 1, idx_limit - 1)] - t_rel[s])
+        if run_ms >= min_detected_ms:
             start_idx = int(s)
             break
 
