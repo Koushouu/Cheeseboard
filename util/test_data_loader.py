@@ -38,6 +38,17 @@ class DataLoader:
 
         return os.path.join(self.data_dir, data_type, self.sub_dir, self.ses_dir, mod, f"{self.filename_init_ephys}")
             
+    def generate_preprocess_ephys_filepath(self, data_type='derivatives', mod='ephys'):
+            '''
+            generate folder path for ephys recording after they have been processed
+            '''
+
+            if not hasattr(self, "ephys_trial_id") or int(self.ephys_trial_id) == 0:
+                raise ValueError("This trial has no ephys data (ephys_trial_id == 0).")
+
+            return os.path.join(self.data_dir, data_type, self.sub_dir, self.ses_dir, mod, f"{self.filename_init_ephys}")
+
+    
     def get_data(self, data_name, preprocess = True):
         '''
         Get data
