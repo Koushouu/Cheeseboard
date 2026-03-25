@@ -109,8 +109,8 @@ def preprocess_position(position):
 
     detected_mask = (position_truncate['smooth_trans_x'].values != -1)
 
-    # Find trial start within first 20 s: first >=3 s continuous detected run
-    first_window_ms = 20000.0
+    # Find trial start within first 25 s: first >=3 s continuous detected run
+    first_window_ms = 25000.0
     min_detected_ms = 3000.0
 
     idx_limit = np.searchsorted(t_rel, first_window_ms, side='right')
