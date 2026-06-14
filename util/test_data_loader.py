@@ -78,6 +78,13 @@ class DataLoader:
             return util.load_data(ephys_path)
          #remember to incorporate holding box recordings, as these has not been aligned 
 
+        elif data_name == 'ephys_rest':
+            if not hasattr(self, "ephys_trial_id") or int(self.ephys_trial_id) == 0:
+                raise ValueError("This trial has no ephys data (ephys_trial_id == 0).")
+            ephys_path = os.path.join(
+                self.generate_preprocess_ephys_filepath(), f"{self.filename_init_ephys}_raw.npy")
+            return util.load_data(ephys_path)
+
         elif data_name == 'trace':
             return util.load_data(self.generate_filepath('trace', 'derivatives', 'behav', 'png'))
         elif data_name == 'triggerLoc':
